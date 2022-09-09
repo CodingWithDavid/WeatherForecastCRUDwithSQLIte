@@ -21,7 +21,7 @@
                 </div>
                 <div class="flex flex-col mb-4">
                     <label class="mb-2 font-bold text-lg text-gray-900" for="submit">Summary</label>
-                <input class="w-28 border py-2 px-3 text-grey-800" type="text" id="summary" required @bind-value=forecast.Summary>
+                <input class="w-28 border py-2 px-3 text-grey-800" type="text" id="summary" required @bind-value=forecast.Summary @onkeyup="@Enter">
                 </div>
                 <div class="flex flex-col md:flex-row">
                     <button class="block bg-gray-600 hover:bg-gray-800 text-white uppercase text-lg mx-auto mb-2 pt-1 pb-2 pl-10 pr-10 md:pl-6 md:pr-6 rounded h-10" type="button" @onclick=Submit>Save</button>
@@ -64,6 +64,7 @@
             {
                 //toast
                 toastService.ShowError("All fields must be populated");
+                return;
             }
             else
             {
@@ -89,9 +90,9 @@
             {
                 appService.ErrorMessage = "Unable to update forecast record";
             }
-            //Go back to list page
-            navManager.NavigateTo($"/fetchdata");
         }
+        //Go back to list page
+        navManager.NavigateTo($"/fetchdata");
     }
 
     private async Task Close()
@@ -101,4 +102,13 @@
         navManager.NavigateTo("/fetchdata");
         await Task.CompletedTask;
     }
+
+    public async Task Enter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            await Submit();
+        }
+    }
+
 }
