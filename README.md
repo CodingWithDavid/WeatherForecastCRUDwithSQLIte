@@ -1,6 +1,6 @@
 # Weather Forecast CRUD
 
-This application shows how to add and configure SQLite to a Blazor project. In addition, it shows wo to add, update and remove records from the database.
+This application shows how to add and configure SQLite to a Blazor project. In addition, it shows to to add, update and remove records from the database.
 
 
 by [CodingWithDavid](http://twitter.com/CodingwithDavid)
@@ -8,7 +8,7 @@ by [CodingWithDavid](http://twitter.com/CodingwithDavid)
 
 ## Why
 
-The project just started out as a demo of adding SQLite to Blazor but grow into show a full CRUD cycle.
+The project just started out as a demo of adding SQLite to Blazor but grow into showing a full CRUD cycle.
 
 ## Getting Started
 
