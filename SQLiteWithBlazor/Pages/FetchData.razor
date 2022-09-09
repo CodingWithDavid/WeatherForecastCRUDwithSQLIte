@@ -1,0 +1,171 @@
+﻿@page "/fetchdata"
+
+<PageTitle>Weather forecast</PageTitle>
+
+@inject WeatherForecastService ForecastService
+@inject AppDataService appService
+@inject NavigationManager navMgr
+@inject IToastService toastService
+@inject IJSRuntime JSRuntime;
+
+<article class="pl-4 pr-3 pt-0 block">
+
+    <span class="border-none text-3xl font-medium leading-tight mb-1 mt-0">Weather forecast</span>
+
+    <p class="mt-0 mb-4">This component demonstrates fetching data from a service.</p>
+
+    @if (forecasts == null || forecasts.Count == 0)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <div class="flex items-end justify-end">
+            <button class="block bg-gray-600 hover:bg-gray-800 text-white uppercase rounded w-16" type="button" @onclick=AddForecast>Add</button>
+            <button class="@buttonDisable block bg-gray-600 hover:bg-gray-800 text-white uppercase ml-2 mr-2 rounded  w-16" type="button" @onclick=EditForecast>Edit</button>
+            <button class="@buttonDisable block bg-gray-600 hover:bg-gray-800 text-white uppercase rounded  w-16" type="button" @onclick=DeleteForecast>Delete</button>
+        </div>
+        <section class="py-1 bg-blueGray-50">
+        <div class="block w-full">
+            <table class="min-w-full mb-4 text-slate-800 border-gray-200 items-center" id="datatable">
+            <thead class="bg-white border-b border-black">
+                <tr>
+                    <th scope="col" class="text-md font-bold text-gray-900 px-6 py-4 text-left">Date</th>
+                    <th scope="col" class="text-md font-bold text-gray-900 px-6 py-4 text-left content-center">Temp. (C)</th>
+                    <th scope="col" class="text-md font-bold text-gray-900 px-6 py-4 text-left content-center">Temp. (F)</th>
+                    <th scope="col" class="text-md font-bold text-gray-900 px-6 py-4 text-left content-center">Summary</th>
+                </tr>
+            </thead>
+            <tbody class="border-solid border-width-0">
+                @for (int i = 0; i < forecasts.Count; i++)
+                {
+                    int index = i + 1;
+                    <tr class="border-b border-solid border-gray-300 p-2" @onclick="(()=> SetForecastForUpdate(index))">
+                        <td class="text-md text-gray-700 px-2 py-2 whitespace-nowrap">@forecasts[i].Date.ToShortDateString()</td>
+                        <td class="text-md text-gray-700 px-2 py-2 pl-8 whitespace-nowrap content-center">@forecasts[i].TemperatureC</td>
+                        <td class="text-md text-gray-700 px-2 py-2 pl-8 whitespace-nowrap content-center">@forecasts[i].TemperatureF</td>
+                        <td class="text-md text-gray-700 px-2 py-2 whitespace-nowrap">@forecasts[i].Summary</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+        </section>
+    }
+
+    @*Delete modal*@
+    <div id="popup-modal" tabindex="-1" class="@ShowModalClass overflow-y-auto overflow-x-hidden fixed inset-0 md:inset-1/4 z-50 h-modal md:h-full justify-center items-center" aria-hidden="true">
+        <div class="relative p-4 w-full max-w-md h-full md:h-auto">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                <div class="p-6 text-center">
+                    <svg aria-hidden="true" class="mx-auto mb-4 w-14 h-14 text-gray-400 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Are you sure you want to delete @deleteMessage?</h3>
+                    <button data-modal-toggle="popup-modal" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2" @onclick=DeleteForecastItem>
+                        Yes, I'm sure
+                    </button>
+                    <button data-modal-toggle="popup-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" @onclick=CloseModal>No, cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+@code {
+
+    private List<WeatherForecast>? forecasts;
+    private WeatherForecast UpdateForecase = new();
+    private string buttonDisable = "opacity-50 cursor-not-allowed";
+    private string ShowModalClass = "hidden";
+    private int currentRow = -1;
+    private string deleteMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await ForecastService.GetAsync();
+        if(!string.IsNullOrEmpty(appService.ActionResult))
+        {
+            //show Toast
+            toastService.ShowSuccess(appService.ActionResult);
+        }
+        if (!string.IsNullOrEmpty(appService.ErrorMessage))
+        {
+            //show Toast
+            toastService.ShowError(appService.ErrorMessage);
+        }
+        //Clean Up after Editing
+        CleanUpUI();
+    }
+
+    private void CleanUpUI()
+    {
+        buttonDisable = "opacity-50 cursor-not-allowed";
+        currentRow = -1;
+        appService.ActionResult = "";
+        appService.ErrorMessage = "";
+        ShowModalClass = "hidden";
+        deleteMessage = "";
+    }
+
+    private void AddForecast()
+    {
+        appService.WeatherForecast = null;
+        navMgr.NavigateTo("/addWeatherForecast");
+    }
+
+    private async Task SetForecastForUpdate(int rowIndex)
+    {
+        UpdateForecase = forecasts!.ElementAt(rowIndex-1);
+        await JSRuntime.InvokeVoidAsync("hightlight_row", rowIndex);
+        currentRow = rowIndex;
+        buttonDisable = "";
+    }
+
+    private void EditForecast()
+    {
+        if(currentRow > 0)
+        {
+            appService.WeatherForecast = forecasts!.ElementAt(currentRow - 1);
+            navMgr.NavigateTo($"/addWeatherForecast");
+        }
+    }
+
+    private void DeleteForecast()
+    {
+        //set message
+        if (currentRow > 0)
+        {
+            //show modal
+            deleteMessage = $"{forecasts!.ElementAt(currentRow - 1).Date.ToString("MM/dd/yyyy")} - {forecasts!.ElementAt(currentRow - 1).Summary}";
+            ShowModalClass = "";
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteForecastItem()
+    {
+        var fc = forecasts!.ElementAt(currentRow - 1);
+        if (await ForecastService.DeleteForecast(fc))
+        {
+            //success
+            toastService.ShowSuccess("Forecast record was deleted");
+        }
+        else
+        {
+            //failed
+            toastService.ShowError("There was an error deleting the Forecast record");
+        }
+        //reload the data
+        forecasts = await ForecastService.GetAsync();
+        CloseModal();
+    }
+
+    private void CloseModal()
+    {
+        //close modal
+        ShowModalClass = "hidden";
+        StateHasChanged();
+        CleanUpUI();
+    }
+}

@@ -1,0 +1,73 @@
+﻿@using static SQLiteWithBlazor.Shared.NavMenu
+
+@inherits LayoutComponentBase
+@using Blazored.Toast.Configuration
+
+<BlazoredToasts Position="ToastPosition.TopRight"
+                Timeout="5"
+                IconType="IconType.FontAwesome"
+                SuccessClass="success-toast-override"
+                SuccessIcon="fa fa-thumbs-up"
+                ErrorIcon="fa fa-bug" />
+
+<PageTitle>SQLiteWithBlazor</PageTitle>
+
+<div class="flex flex-col sm:flex-row w-screen  h-screen relative">
+    <NavMenu MenuItems="menuitems" />
+
+    <main class="bg-white w-full overflow-auto">
+        <!--logout, user info etc -->
+        <header class="bg-gray-100 hidden sm:flex h-14 justify-end">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank" class="text-blue-600 underline self-center mr-6 ">About</a>
+        </header>
+
+        <!-- work area -->
+        <section class="m-4">
+            @Body
+        </section>
+    </main>
+</div>
+
+@code {
+    private List<BaseMenuItem> menuitems = new();
+
+    private string burgerStyle = "hidden";
+    private int menuIndex = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        BaseMenuItem item = new();
+        item.Name = "Home";
+        item.Page = "/";
+        item.Order = 1;
+        item.IconName = "home";
+        menuitems!.Add(item);
+
+        item = new();
+        item.Name = "Fetch Data";
+        item.Page = "/fetchdata";
+        item.Order = 2;
+        item.IconName = "list";
+        menuitems.Add(item);
+        await Task.CompletedTask;
+    }
+
+    //handle the burger clicks
+    private void BurgerClick()
+    {
+        if (string.IsNullOrEmpty(burgerStyle))
+        {
+            burgerStyle = "hidden";
+        }
+        else
+        {
+            burgerStyle = "";
+        }
+    }
+
+    //handle the link nav and style
+    private void SetMenu(int index)
+    {
+        menuIndex = index;
+    }
+}

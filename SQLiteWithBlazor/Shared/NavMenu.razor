@@ -1,0 +1,118 @@
+﻿@inject NavigationManager navMgr
+
+<nav class="bg-gray-800 w-full sm:w-64 sm:h-full overflow-visible">
+
+    <!--logo or App name -->
+    <header class="bg-black/10 flex h-14 justify-between ml-4 sm:justify-center  ">
+        <span class="text-white text-md md:text-lg lg:text-lg self-center hover:cursor-pointer">SQLite With Blazor</span>
+        <div class="px-4 cursor-pointer md:hidden text-white float-right self-center" id="burger" @onclick=BurgerClick>
+            <svg class="w-6 h-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </div>
+    </header>
+
+
+    <div class="sm:flex justify-center mt-6 @burgerStyle" id="menu">
+        <ul class="text-gray-200 ">
+            @{
+                var orderItems = MenuItems.OrderBy(x => x.Order).ToList();
+            }
+            @foreach (var item in orderItems)
+            {
+                <li class="@( menuIndex == item.Order ? "bg-white/30" : "" ) mt-2 p-4 hover:bg-white/10 hover:text-white rounded-md" @onclick="()=> ApplyActiveStyles(item.Name)">
+                    <i class=@GetIcon(item.IconName)></i>
+                    <span class="ml-2">@item.Name</span>
+                </li>
+            }
+        </ul>
+    </div>
+</nav>
+
+@code {
+    private string burgerStyle = "hidden";
+    private int menuIndex = 1;
+    private string activeMenuStyle = "bg-white/30";
+    private static string ActiveKey = "Home";
+
+    [Parameter]
+    public List<BaseMenuItem> MenuItems { get; set; } = new();
+
+    private void ApplyActiveStyles(string key)
+    {
+        int index = 1;
+        string page = "/";
+        for (int i = 0; i < MenuItems.Count; ++i)
+        {
+            if (MenuItems.ElementAt(i).Name == key)
+            {
+                index = i + 1;
+                page = MenuItems.ElementAt(i).Page;
+                break;
+            }
+        }
+        ActiveKey = key;
+        menuIndex = index;
+        navMgr.NavigateTo(page);
+    }
+
+    private void BurgerClick()
+    {
+        burgerStyle = string.IsNullOrEmpty(burgerStyle) ? "hidden" : string.Empty;
+    }
+
+    private string GetIcon(string iconName)
+    {
+        return $"fa fa-{iconName} mt-1";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (MenuItems == null || MenuItems.Count == 0)
+        {
+            BaseMenuItem item = new();
+            item.Name = "Home";
+            item.Page = "/";
+            item.Order = 1;
+            item.IconName = "home";
+            MenuItems!.Add(item);
+
+            item = new();
+            item.Name = "Counter";
+            item.Page = "/counter";
+            item.Order = 2;
+            item.IconName = "plus";
+            MenuItems.Add(item);
+
+            item = new();
+            item.Name = "Fetch Name";
+            item.Page = "/fetchdata";
+            item.Order = 3;
+            item.IconName = "list";
+            MenuItems.Add(item);
+        }
+        ApplyOnlyActiveStyle(ActiveKey);
+        await Task.CompletedTask;
+    }
+
+    private void ApplyOnlyActiveStyle(string name)
+    {
+        int index = 1;
+        for (int i = 0; i < MenuItems.Count; ++i)
+        {
+            if (MenuItems.ElementAt(i).Name == name)
+            {
+                index = i + 1;
+                break;
+            }
+        }
+        menuIndex = index;
+    }
+
+    public class BaseMenuItem
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Page { get; set; } = string.Empty;
+        public int Order { get; set; } = 0;
+        public string IconName { get; set; } = string.Empty;
+    }
+
+}

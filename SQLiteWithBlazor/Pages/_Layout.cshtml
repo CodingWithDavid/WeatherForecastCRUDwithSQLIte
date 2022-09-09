@@ -1,0 +1,48 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@namespace SQLiteWithBlazor.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+    <link href="_content/Blazored.Toast/blazored-toast.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+
+</head>
+<body class="overflow-hidden h-full">
+
+        @RenderBody()
+
+       <!-- Error Section -->
+        <div id="blazor-error-ui" class="bg-yellow-100 w-full h-7 hidden">
+            <span class="ml-8 mt-1">An unhandled exception has occurred. See browser dev tools for details.</span>
+            <a href="" class="text-blue-600 underline p-4">Reload</a>
+            <a class="text-blue-600 underline float-right mr-2">🗙</a>
+        </div>
+
+    <script src="_framework/blazor.server.js"></script>
+
+    <script>
+        function hightlight_row(rowId) {
+            var table = document.getElementById('datatable');
+            var cells = table.getElementsByTagName('td');
+
+            var rowsNotSelected = table.getElementsByTagName('tr');
+            for (var row = 0; row < rowsNotSelected.length; row++) {
+                rowsNotSelected[row].style.backgroundColor = "";
+                rowsNotSelected[row].classList.remove('selected');
+            }
+            if (rowId > 0) {
+                var rowSelected = table.getElementsByTagName('tr')[rowId];
+                rowSelected.style.backgroundColor = "gray";
+                rowSelected.className += " selected";
+            }
+        }
+    </script>
+</body>
+</html>
